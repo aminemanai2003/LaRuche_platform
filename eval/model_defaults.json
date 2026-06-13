@@ -3,22 +3,15 @@
   "MODEL_CONVERSATIONAL": "qwen2.5:7b",
   "MODEL_EMBED": "nomic-embed-text",
   "MODEL_REASONING": "deepseek-r1:7b",
-  "notes": {
-    "qwen2.5:3b": {
-      "tok_per_s": 0.0,
-      "vram_mb": 2143
-    },
-    "qwen2.5:7b": {
-      "tok_per_s": 0.0,
-      "vram_mb": 0
-    },
-    "llama3.2:3b": {
-      "tok_per_s": 0.0,
-      "vram_mb": 2309
-    },
-    "nomic-embed-text": {
-      "tok_per_s": 0.0,
-      "vram_mb": 393
-    }
+  "_note_conversational": "qwen2.5:7b chosen over mistral (8.4 tok/s) for finance/structured-data quality; speed is acceptable at 6.1 tok/s with streaming",
+  "benchmark": {
+    "hw": "RTX 2050 4GB VRAM / 16GB RAM",
+    "qwen2.5:3b":        { "tok_per_s": 14.7, "vram_mb": 2143, "role": "router/most-agents" },
+    "qwen2.5:7b":        { "tok_per_s": 6.1,  "vram_mb": 2273, "role": "financial-assistant" },
+    "llama3.2:3b":       { "tok_per_s": 13.6, "vram_mb": 2309, "role": "alt-small-US" },
+    "phi3.5":            { "tok_per_s": 11.4, "vram_mb": 2319, "role": "alt-small-US-tools" },
+    "mistral:7b-instruct": { "tok_per_s": 8.4, "vram_mb": 2295, "role": "french-origin-option" },
+    "deepseek-r1:7b":    { "tok_per_s": 6.9,  "vram_mb": 2273, "role": "reasoning-on-demand" },
+    "nomic-embed-text":  { "tok_per_s": null,  "vram_mb": 393,  "role": "embeddings", "dim": 768 }
   }
 }
