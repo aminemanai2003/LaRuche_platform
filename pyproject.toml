@@ -1,0 +1,39 @@
+[tool.uv.workspace]
+members = [
+    "libs/agentkit",
+    "services/orchestrator",
+    "services/agent-financial",
+    "services/agent-market",
+    "services/agent-docs",
+    "services/agent-action",
+    "services/agent-qa",
+    "services/voice",
+    "eval",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+addopts = "--import-mode=importlib"
+testpaths = [
+    "libs/agentkit/tests",
+    "services/orchestrator/tests",
+    "services/agent-financial/tests",
+    "services/agent-market/tests",
+    "services/agent-docs/tests",
+    "services/agent-action/tests",
+    "services/agent-qa/tests",
+    "eval/tests",
+]
