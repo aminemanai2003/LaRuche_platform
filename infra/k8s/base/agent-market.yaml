@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-market
+  namespace: wealthmesh
+  labels:
+    app: agent-market
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-market
+  template:
+    metadata:
+      labels:
+        app: agent-market
+    spec:
+      containers:
+        - name: agent-market
+          image: wealthmesh/agent-market:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8002
+          envFrom:
+            - configMapRef:
+                name: wealthmesh-env
+            - secretRef:
+                name: wealthmesh-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-market
+  namespace: wealthmesh
+spec:
+  selector:
+    app: agent-market
+  ports:
+    - port: 8002
+      targetPort: 8002
+  type: ClusterIP

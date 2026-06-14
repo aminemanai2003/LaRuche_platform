@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-action
+  namespace: wealthmesh
+  labels:
+    app: agent-action
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-action
+  template:
+    metadata:
+      labels:
+        app: agent-action
+    spec:
+      containers:
+        - name: agent-action
+          image: wealthmesh/agent-action:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8004
+          envFrom:
+            - configMapRef:
+                name: wealthmesh-env
+            - secretRef:
+                name: wealthmesh-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-action
+  namespace: wealthmesh
+spec:
+  selector:
+    app: agent-action
+  ports:
+    - port: 8004
+      targetPort: 8004
+  type: ClusterIP

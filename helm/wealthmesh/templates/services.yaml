@@ -1,0 +1,60 @@
+{{- $services := list
+  (dict "name" "orchestrator"     "port" 8000 "image" (printf "%s:%s" .Values.images.orchestrator.repository .Values.images.orchestrator.tag)     "replicas" .Values.replicas.orchestrator)
+  (dict "name" "agent-financial"  "port" 8001 "image" (printf "%s:%s" .Values.images.agentFinancial.repository .Values.images.agentFinancial.tag)  "replicas" .Values.replicas.agentFinancial)
+  (dict "name" "agent-market"     "port" 8002 "image" (printf "%s:%s" .Values.images.agentMarket.repository .Values.images.agentMarket.tag)         "replicas" .Values.replicas.agentMarket)
+  (dict "name" "agent-docs"       "port" 8003 "image" (printf "%s:%s" .Values.images.agentDocs.repository .Values.images.agentDocs.tag)             "replicas" .Values.replicas.agentDocs)
+  (dict "name" "agent-action"     "port" 8004 "image" (printf "%s:%s" .Values.images.agentAction.repository .Values.images.agentAction.tag)         "replicas" .Values.replicas.agentAction)
+  (dict "name" "agent-qa"         "port" 8005 "image" (printf "%s:%s" .Values.images.agentQa.repository .Values.images.agentQa.tag)                "replicas" .Values.replicas.agentQa)
+  (dict "name" "voice"            "port" 8006 "image" (printf "%s:%s" .Values.images.voice.repository .Values.images.voice.tag)                     "replicas" .Values.replicas.voice)
+-}}
+{{- range $services }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: {{ .name }}
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: {{ .name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .name }}
+    spec:
+      containers:
+        - name: {{ .name }}
+          image: {{ .image }}
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .port }}
+          envFrom:
+            - configMapRef:
+                name: wealthmesh-env
+            - secretRef:
+                name: wealthmesh-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{- toYaml $.Values.resources.default | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  selector:
+    app: {{ .name }}
+  ports:
+    - port: {{ .port }}
+      targetPort: {{ .port }}
+  type: ClusterIP
+{{- end }}

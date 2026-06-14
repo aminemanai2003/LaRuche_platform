@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-qa
+  namespace: wealthmesh
+  labels:
+    app: agent-qa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agent-qa
+  template:
+    metadata:
+      labels:
+        app: agent-qa
+    spec:
+      containers:
+        - name: agent-qa
+          image: wealthmesh/agent-qa:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8005
+          envFrom:
+            - configMapRef:
+                name: wealthmesh-env
+            - secretRef:
+                name: wealthmesh-secrets
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-qa
+  namespace: wealthmesh
+spec:
+  selector:
+    app: agent-qa
+  ports:
+    - port: 8005
+      targetPort: 8005
+  type: ClusterIP

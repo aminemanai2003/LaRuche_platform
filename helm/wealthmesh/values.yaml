@@ -1,0 +1,78 @@
+global:
+  imageRegistry: ""
+  imagePullPolicy: IfNotPresent
+  namespace: wealthmesh
+
+# Per-service image overrides
+images:
+  orchestrator:
+    repository: wealthmesh/orchestrator
+    tag: latest
+  agentFinancial:
+    repository: wealthmesh/agent-financial
+    tag: latest
+  agentMarket:
+    repository: wealthmesh/agent-market
+    tag: latest
+  agentDocs:
+    repository: wealthmesh/agent-docs
+    tag: latest
+  agentAction:
+    repository: wealthmesh/agent-action
+    tag: latest
+  agentQa:
+    repository: wealthmesh/agent-qa
+    tag: latest
+  voice:
+    repository: wealthmesh/voice
+    tag: latest
+
+# Replica counts — keep 1 for RTX 2050 (4GB VRAM, one LLM at a time)
+replicas:
+  orchestrator: 1
+  agentFinancial: 1
+  agentMarket: 1
+  agentDocs: 1
+  agentAction: 1
+  agentQa: 1
+  voice: 1
+
+# Resource limits tuned for dev laptop
+resources:
+  default:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+config:
+  ollamaUrl: "http://host.docker.internal:11434"
+  ollamaModel: "qwen2.5:3b"
+  redisUrl: "redis://redis:6379"
+  langfuseHost: "http://langfuse:3000"
+  smtpHost: "mailhog"
+  smtpPort: "1025"
+
+postgres:
+  enabled: true
+  host: postgres
+  port: 5432
+  database: wealthmesh
+  username: wealthmesh
+  password: changeme
+  storage: 5Gi
+
+redis:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  host: wealthmesh.local
+
+keycloak:
+  url: "http://keycloak:8080"
+  realm: wealth
+  clientId: wealth-backend

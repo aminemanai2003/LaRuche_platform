@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+namespace: wealthmesh
+
+# Use local minikube images (built with eval $(minikube docker-env))
+images:
+  - name: wealthmesh/orchestrator
+    newTag: dev
+  - name: wealthmesh/agent-financial
+    newTag: dev
+  - name: wealthmesh/agent-market
+    newTag: dev
+  - name: wealthmesh/agent-docs
+    newTag: dev
+  - name: wealthmesh/agent-action
+    newTag: dev
+  - name: wealthmesh/agent-qa
+    newTag: dev
+  - name: wealthmesh/voice
+    newTag: dev
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: Never
+    target:
+      kind: Deployment

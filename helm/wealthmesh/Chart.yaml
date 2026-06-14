@@ -1,0 +1,14 @@
+apiVersion: v2
+name: wealthmesh
+description: Agentic Mesh for Private Banking — 5 AI agents + LangGraph orchestrator
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - ai
+  - private-banking
+  - wealth-management
+  - langgraph
+  - a2a
+maintainers:
+  - name: wealthmesh-team
