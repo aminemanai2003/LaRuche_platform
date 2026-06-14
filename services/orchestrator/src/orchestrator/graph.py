@@ -40,11 +40,11 @@ class MeshState(TypedDict):
 # ── Agent registry ─────────────────────────────────────────────────────────────
 
 _AGENT_URLS: dict[str, str] = {
-    "financial": os.getenv("AGENT_FINANCIAL_URL", "http://agent-financial:8001"),
-    "market": os.getenv("AGENT_MARKET_URL", "http://agent-market:8002"),
-    "docs": os.getenv("AGENT_DOCS_URL", "http://agent-docs:8003"),
-    "action": os.getenv("AGENT_ACTION_URL", "http://agent-action:8004"),
-    "qa": os.getenv("AGENT_QA_URL", "http://agent-qa:8005"),
+    "financial": os.getenv("AGENT_FINANCIAL_URL", "http://localhost:8001"),
+    "market": os.getenv("AGENT_MARKET_URL", "http://localhost:8002"),
+    "docs": os.getenv("AGENT_DOCS_URL", "http://localhost:8003"),
+    "action": os.getenv("AGENT_ACTION_URL", "http://localhost:8004"),
+    "qa": os.getenv("AGENT_QA_URL", "http://localhost:8005"),
 }
 
 # Keywords used by the simple rule-based router
@@ -111,8 +111,17 @@ _ROUTING_RULES: list[tuple[str, list[str]]] = [
     ("qa", ["test", "generate test", "validate", "check api", "functional"]),
 ]
 
+_GREETING_RE = re.compile(
+    r"^\s*(?:hi|hello|hey|good\s+(?:morning|afternoon|evening)|howdy)"
+    r"(?:\s+(?:there|advisor|wealthmesh))?[!.?\s]*$",
+    re.IGNORECASE,
+)
+
 
 def _route(message: str) -> list[str]:
+    if _GREETING_RE.fullmatch(message):
+        return []
+
     lower = message.lower()
     # Whole-word tokens, so single-word keywords don't match inside other words
     # (e.g. "rate" must not match "generate").
@@ -164,6 +173,14 @@ async def agents_node(state: MeshState) -> dict[str, Any]:
 
 
 def aggregate_node(state: MeshState) -> dict[str, Any]:
+    if not state["routed_agents"] and _GREETING_RE.fullmatch(state["user_message"]):
+        return {
+            "final_answer": (
+                "Hello! I can help with your portfolio performance, market data, "
+                "investment documents, and reports. What would you like to explore?"
+            )
+        }
+
     parts: list[str] = []
     for r in state["agent_results"]:
         if not r.get("error") and r.get("output"):

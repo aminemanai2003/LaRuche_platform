@@ -51,10 +51,26 @@ test('market page renders quotes and indicators', async ({ page }) => {
 test('chat page renders and accepts input', async ({ page }) => {
   await goto(page, '/chat')
   await expect(page.getByRole('heading', { name: 'AI Assistant' })).toBeVisible()
-  const input = page.getByPlaceholder(/Ask about your portfolio/i)
+  const input = page.getByPlaceholder(/Ask WealthMesh anything/i)
   await expect(input).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Attach text file' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Dictate message' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Start voice conversation' })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Response mode' })).toHaveValue('instant')
   await input.fill('What is my portfolio AUM?')
+  await expect(page.getByRole('button', { name: 'Send message' })).toBeVisible()
   await page.screenshot({ path: 'e2e/__screens__/chat.png' })
+})
+
+test('voice studio exposes all three speech modes', async ({ page }) => {
+  await goto(page, '/voice')
+  await expect(page.getByRole('heading', { name: 'Voice Studio' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Voice to voice/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Speech to text/ })).toBeVisible()
+  await page.getByRole('button', { name: /Text to speech/ }).click()
+  await expect(page.getByRole('heading', { name: 'Generate a briefing' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Play briefing' })).toBeVisible()
+  await page.screenshot({ path: 'e2e/__screens__/voice.png' })
 })
 
 test('no console errors across navigation', async ({ page }) => {
@@ -62,5 +78,6 @@ test('no console errors across navigation', async ({ page }) => {
   await goto(page, '/portfolio')
   await goto(page, '/market')
   await goto(page, '/chat')
+  await goto(page, '/voice')
   expect(consoleErrors, consoleErrors.join('\n')).toEqual([])
 })

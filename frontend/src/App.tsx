@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider, useAuth } from './auth/AuthContext'
+import { AuthProvider } from './auth/AuthContext'
+import { useAuth } from './auth/useAuth'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Portfolio from './pages/Portfolio'
 import Market from './pages/Market'
 import Chat from './pages/Chat'
+import Voice from './pages/Voice'
 import Login from './pages/Login'
 
 function ProtectedApp() {
@@ -13,9 +15,7 @@ function ProtectedApp() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-slate-400 text-sm">Loading...</div>
-      </div>
+      <div className="loading-state" style={{ minHeight: '100vh' }}>Opening your secure workspace...</div>
     )
   }
 
@@ -28,6 +28,7 @@ function ProtectedApp() {
         <Route path="/portfolio" element={<Portfolio />} />
         <Route path="/market" element={<Market />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/voice" element={<Voice />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

@@ -1,49 +1,57 @@
-import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { Activity, TrendingDown, TrendingUp } from 'lucide-react'
 import { getMarket } from '../api/client'
 
 export default function Market() {
   const { data, isLoading, isError } = useQuery({ queryKey: ['market'], queryFn: getMarket })
 
-  if (isLoading) return <div className="p-6 text-slate-400 text-sm">Loading market data…</div>
-  if (isError || !data) return <div className="p-6 text-red-400 text-sm">Could not load market data.</div>
+  if (isLoading) return <div className="loading-state">Loading market signals...</div>
+  if (isError || !data) return <div className="error-state">Could not load market data.</div>
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold text-white">Market Data</h1>
+    <div className="page">
+      <header className="page-intro">
+        <div className="page-icon"><Activity className="h-5 w-5" /></div>
+        <div>
+          <p className="eyebrow">Macro pulse</p>
+          <h1>Market Data</h1>
+          <p>Key public-market signals and economic indicators in one focused view.</p>
+        </div>
+      </header>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {data.quotes.map(q => (
-          <div key={q.symbol} className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs text-slate-400">{q.name}</p>
-                <p className="text-lg font-bold text-white mt-1">
-                  {q.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-              <span className={`flex items-center gap-1 text-sm font-medium ${q.change_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {q.change_pct >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {q.change_pct >= 0 ? '+' : ''}{q.change_pct.toFixed(2)}%
+      <div className="market-grid">
+        {data.quotes.map(quote => (
+          <article key={quote.symbol} className="surface-card quote-card">
+            <span className="quote-symbol">{quote.symbol}</span>
+            <p className="quote-name">{quote.name}</p>
+            <div className="quote-line">
+              <strong className="quote-price">
+                {quote.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </strong>
+              <span className={`quote-change ${quote.change_pct >= 0 ? 'positive' : 'negative'}`}>
+                {quote.change_pct >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                {quote.change_pct >= 0 ? '+' : ''}{quote.change_pct.toFixed(2)}%
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-2">{q.symbol}</p>
-          </div>
+          </article>
         ))}
       </div>
 
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">Economic Indicators</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-          {data.indicators.map(ind => (
-            <div key={ind.key} className="bg-slate-700/50 rounded-lg p-3">
-              <p className="text-xs text-slate-400">{ind.name}</p>
-              <p className="text-lg font-bold text-white">{ind.value}{ind.unit === '%' ? '%' : ` ${ind.unit}`}</p>
-              <p className="text-xs text-slate-500">{ind.date}</p>
+      <section className="surface-card data-panel" style={{ marginTop: 14 }}>
+        <div className="data-panel-header">
+          <h2>Economic indicators</h2>
+          <span>Latest canonical readings</span>
+        </div>
+        <div className="indicator-grid">
+          {data.indicators.map(indicator => (
+            <div key={indicator.key} className="indicator-card">
+              <span>{indicator.name}</span>
+              <strong>{indicator.value}{indicator.unit === '%' ? '%' : ` ${indicator.unit}`}</strong>
+              <small>{indicator.date}</small>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   )
 }

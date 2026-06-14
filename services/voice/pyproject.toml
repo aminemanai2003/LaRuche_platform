@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "agentkit",
     "fastapi>=0.115",
+    "faster-whisper>=1.2.1",
     "uvicorn[standard]>=0.30",
     "python-dotenv>=1.0",
     "python-multipart>=0.0.9",

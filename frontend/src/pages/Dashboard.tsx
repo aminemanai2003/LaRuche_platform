@@ -1,90 +1,115 @@
-import { TrendingUp, DollarSign, BarChart3, Globe } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { getPortfolioSummary, getAllocation } from '../api/client'
+import type { CSSProperties, ReactNode } from 'react'
+import {
+  BarChart3,
+  BriefcaseBusiness,
+  DollarSign,
+  Globe2,
+  ShieldCheck,
+  TrendingUp,
+} from 'lucide-react'
+import { getAllocation, getPortfolioSummary } from '../api/client'
 
-const BAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-slate-500']
+const BAR_COLORS = ['#9b7cff', '#5eead4', '#6f8cff', '#e6b45e', '#858594']
 
 export default function Dashboard() {
   const summary = useQuery({ queryKey: ['summary'], queryFn: getPortfolioSummary })
   const alloc = useQuery({ queryKey: ['allocation'], queryFn: getAllocation })
 
-  if (summary.isLoading || alloc.isLoading) {
-    return <div className="p-6 text-slate-400 text-sm">Loading portfolio…</div>
-  }
+  if (summary.isLoading || alloc.isLoading) return <div className="loading-state">Loading portfolio intelligence...</div>
   if (summary.isError || alloc.isError || !summary.data || !alloc.data) {
-    return <div className="p-6 text-red-400 text-sm">Could not load portfolio data.</div>
+    return <div className="error-state">Could not load portfolio data.</div>
   }
 
   const s = summary.data
   const metrics = [
-    { label: 'Total AUM', value: s.aum_fmt, sub: `+${s.annualized_pct}% annualized`, icon: DollarSign, color: 'text-emerald-400' },
-    { label: 'TWR', value: `${s.twr_pct}%`, sub: 'Since inception', icon: TrendingUp, color: 'text-blue-400' },
-    { label: 'IRR', value: `${s.irr_pct.toFixed(2)}%`, sub: 'Internal Rate of Return', icon: BarChart3, color: 'text-purple-400' },
-    { label: 'Sharpe Ratio', value: s.sharpe.toFixed(2), sub: `Vol: ${s.volatility_pct}%`, icon: Globe, color: 'text-amber-400' },
+    { label: 'Total AUM', value: s.aum_fmt, sub: `+${s.annualized_pct}% annualized`, icon: DollarSign, color: '#5ee6a8', glow: 'rgba(94,230,168,.12)' },
+    { label: 'Time-weighted return', value: `${s.twr_pct}%`, sub: 'Since inception', icon: TrendingUp, color: '#9b7cff', glow: 'rgba(155,124,255,.15)' },
+    { label: 'Internal rate of return', value: `${s.irr_pct.toFixed(2)}%`, sub: 'Portfolio IRR', icon: BarChart3, color: '#70a7ff', glow: 'rgba(92,150,255,.13)' },
+    { label: 'Sharpe ratio', value: s.sharpe.toFixed(2), sub: `${s.volatility_pct}% volatility`, icon: ShieldCheck, color: '#e8b862', glow: 'rgba(232,184,98,.12)' },
   ]
-  const geo = Object.entries(alloc.data.geography).map(([label, pct], i) => ({ label, pct, color: BAR_COLORS[i % BAR_COLORS.length] }))
-  const sectors = Object.entries(alloc.data.sector).map(([label, pct], i) => ({ label, pct, color: BAR_COLORS[i % BAR_COLORS.length] }))
+  const geo = Object.entries(alloc.data.geography)
+  const sectors = Object.entries(alloc.data.sector)
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold text-white">Portfolio Overview</h1>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map(m => (
-          <div key={m.label} className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-            <div className="flex items-center gap-2 mb-2">
-              <m.icon className={`w-4 h-4 ${m.color}`} />
-              <span className="text-xs text-slate-400">{m.label}</span>
-            </div>
-            <p className={`text-2xl font-bold ${m.color}`}>{m.value}</p>
-            <p className="text-xs text-slate-400 mt-1">{m.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BreakdownCard title="Geographic Allocation" data={geo} />
-        <BreakdownCard title="Sector Allocation" data={sectors} />
-      </div>
-
-      <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">Portfolio Summary</h2>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <Stat label="Active Deals" value={String(s.num_active)} />
-          <Stat label="Total Profit" value={s.profit_fmt} />
-          <Stat label="Volatility" value={`${s.volatility_pct}%`} />
+    <div className="page">
+      <header className="page-intro">
+        <div className="page-icon"><Globe2 className="h-5 w-5" /></div>
+        <div>
+          <p className="eyebrow">Live portfolio</p>
+          <h1>Portfolio Overview</h1>
+          <p>A clear view of performance, risk, and allocation across the family office.</p>
         </div>
-      </div>
-    </div>
-  )
-}
+      </header>
 
-type Row = { label: string; pct: number; color: string }
-
-function BreakdownCard({ title, data }: { title: string; data: Row[] }) {
-  return (
-    <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
-      <h2 className="text-sm font-semibold text-slate-300 mb-3">{title}</h2>
-      <div className="space-y-2">
-        {data.map(d => (
-          <div key={d.label} className="flex items-center gap-3">
-            <span className="text-xs text-slate-400 w-28 shrink-0">{d.label}</span>
-            <div className="flex-1 bg-slate-700 rounded-full h-2">
-              <div className={`${d.color} h-2 rounded-full`} style={{ width: `${d.pct}%` }} />
+      <div className="metric-grid">
+        {metrics.map(metric => (
+          <article
+            key={metric.label}
+            className="surface-card metric-card"
+            style={{ '--metric-glow': metric.glow } as CSSProperties}
+          >
+            <div className="metric-top">
+              <span className="metric-label">{metric.label}</span>
+              <span className="metric-icon" style={{ color: metric.color }}><metric.icon className="h-4 w-4" /></span>
             </div>
-            <span className="text-xs text-slate-300 w-8 text-right">{d.pct}%</span>
-          </div>
+            <p className="metric-value" style={{ color: metric.color }}>{metric.value}</p>
+            <p className="metric-sub">{metric.sub}</p>
+          </article>
         ))}
       </div>
+
+      <div className="data-grid">
+        <BreakdownCard title="Geographic allocation" subtitle="Exposure by region" data={geo} />
+        <BreakdownCard title="Sector allocation" subtitle="Capital by strategy" data={sectors} />
+      </div>
+
+      <div className="surface-card summary-strip">
+        <SummaryStat icon={<BriefcaseBusiness className="h-4 w-4" />} label="Active deals" value={String(s.num_active)} />
+        <SummaryStat icon={<DollarSign className="h-4 w-4" />} label="Total profit" value={s.profit_fmt} />
+        <SummaryStat icon={<ShieldCheck className="h-4 w-4" />} label="Volatility" value={`${s.volatility_pct}%`} />
+      </div>
     </div>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function BreakdownCard({
+  title,
+  subtitle,
+  data,
+}: {
+  title: string
+  subtitle: string
+  data: [string, number][]
+}) {
   return (
-    <div>
-      <p className="text-lg font-bold text-white">{value}</p>
-      <p className="text-xs text-slate-400">{label}</p>
+    <section className="surface-card data-panel">
+      <div className="data-panel-header">
+        <h2>{title}</h2>
+        <span>{subtitle}</span>
+      </div>
+      {data.map(([label, pct], index) => (
+        <div className="bar-row" key={label}>
+          <span className="bar-label">{label}</span>
+          <div className="bar-track">
+            <div
+              className="bar-fill"
+              style={{ width: `${pct}%`, background: BAR_COLORS[index % BAR_COLORS.length], color: BAR_COLORS[index % BAR_COLORS.length] }}
+            />
+          </div>
+          <span className="bar-value">{pct}%</span>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+function SummaryStat({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="summary-stat">
+      <span style={{ color: '#9b7cff', display: 'grid', placeItems: 'center', marginBottom: 8 }}>{icon}</span>
+      <strong>{value}</strong>
+      <span>{label}</span>
     </div>
   )
 }

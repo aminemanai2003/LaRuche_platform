@@ -1,24 +1,43 @@
-import { useAuth } from '../auth/AuthContext'
+import { ShieldCheck, Sparkles } from 'lucide-react'
+import { useAuth } from '../auth/useAuth'
 
 export default function Login() {
   const { login } = useAuth()
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-2xl p-8 border border-slate-700 w-full max-w-sm text-center">
-        <div className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl font-bold text-white">W</span>
+    <div className="login-screen">
+      <section className="login-visual">
+        <div className="login-mesh" />
+        <div className="login-copy">
+          <p className="eyebrow">Private banking, reimagined</p>
+          <h1>Intelligence for every wealth decision.</h1>
+          <p>
+            One secure workspace for portfolio analytics, market context, document intelligence,
+            conversational advice, and natural voice interaction.
+          </p>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">WealthMesh</h1>
-        <p className="text-slate-400 text-sm mb-8">Private Banking AI Platform</p>
-        <button
-          onClick={login}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-xl transition-colors"
-        >
-          Sign in with SSO
-        </button>
-        <p className="text-xs text-slate-500 mt-4">Secured by Keycloak PKCE</p>
-      </div>
+      </section>
+
+      <section className="login-form-wrap">
+        <div className="glass-panel login-card">
+          <div className="brand-block">
+            <div className="brand-mark"><Sparkles className="h-4 w-4" /></div>
+            <div>
+              <h1 className="brand-name">WealthMesh</h1>
+              <p className="brand-caption">Private intelligence</p>
+            </div>
+          </div>
+          <h2>Welcome back</h2>
+          <p>Sign in to enter your secure advisory workspace.</p>
+          <button onClick={login} className="primary-button login-button">
+            Sign in with SSO
+          </button>
+          <div className="login-security">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Secured with Keycloak PKCE
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

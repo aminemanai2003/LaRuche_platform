@@ -45,12 +45,57 @@ export interface MarketData {
   quotes: { symbol: string; name: string; price: number; change_pct: number }[]
   indicators: { key: string; name: string; value: number; unit: string; date: string }[]
 }
+export interface VoiceStatus {
+  status: string
+  stt: { engine: string; model: string; ready: boolean }
+  tts: { engine: string; voice: string; ready: boolean }
+  voice_to_voice: boolean
+}
+export interface VoiceChatResult {
+  transcript: string
+  answer_text: string
+  answer_audio_b64: string
+  conversation_id: string
+}
 
 export const getPortfolioSummary = () =>
   api.get<PortfolioSummary>('/api/portfolio/summary').then(r => r.data)
 export const getAllocation = () => api.get<Allocation>('/api/portfolio/allocation').then(r => r.data)
 export const getDeals = () => api.get<Deal[]>('/api/portfolio/deals').then(r => r.data)
 export const getMarket = () => api.get<MarketData>('/api/market').then(r => r.data)
+export const getVoiceStatus = () =>
+  axios.get<VoiceStatus>('/voice-api/status').then(r => r.data)
+
+export async function transcribeAudio(audio: Blob) {
+  const body = new FormData()
+  body.append('audio', audio, 'recording.webm')
+  const { data } = await axios.post<{ transcript: string; model: string }>(
+    '/voice-api/transcribe',
+    body,
+  )
+  return data
+}
+
+export async function synthesizeSpeech(text: string) {
+  const body = new FormData()
+  body.append('text', text)
+  const response = await axios.post('/voice-api/synthesize', body, { responseType: 'blob' })
+  return response.data as Blob
+}
+
+export async function runVoiceChat(
+  audio: Blob,
+  conversationId: string,
+  token: string | null,
+) {
+  const body = new FormData()
+  body.append('audio', audio, 'recording.webm')
+  body.append('conversation_id', conversationId)
+  const { data } = await axios.post<VoiceChatResult>('/voice-api/chat', body, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  return data
+}
 
 export async function* streamChat(
   message: string,

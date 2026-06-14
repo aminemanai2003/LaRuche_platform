@@ -22,8 +22,15 @@ def test_route_action():
 
 
 def test_route_default():
-    # Unrecognised query falls back to financial
-    assert _route("hello there") == ["financial"]
+    assert _route("Tell me something useful") == ["financial"]
+
+
+def test_route_greeting_without_calling_an_agent():
+    assert _route("hello there") == []
+
+
+def test_greeting_with_question_still_routes_to_financial():
+    assert _route("Hello, what is my portfolio AUM?") == ["financial"]
 
 
 def test_route_multi():
@@ -64,3 +71,16 @@ async def test_aggregate_node_skips_errors():
     result = aggregate_node(state)  # type: ignore[arg-type]
     assert "AUM" in result["final_answer"]
     assert "timeout" not in result["final_answer"]
+
+
+async def test_aggregate_node_returns_greeting():
+    state = {
+        "user_message": "hello",
+        "conversation_id": "c1",
+        "user_id": "u1",
+        "routed_agents": [],
+        "agent_results": [],
+        "final_answer": "",
+    }
+    result = aggregate_node(state)  # type: ignore[arg-type]
+    assert "portfolio performance" in result["final_answer"]

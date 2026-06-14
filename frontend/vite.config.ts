@@ -9,6 +9,11 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:8000', changeOrigin: true },
       '/auth': { target: 'http://localhost:8180', changeOrigin: true },
+      '/voice-api': {
+        target: 'http://localhost:8006',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/voice-api/, '/voice'),
+      },
     },
   },
 })

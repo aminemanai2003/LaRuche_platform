@@ -44,3 +44,7 @@ mlartifacts/
 # Secrets
 *.env.local
 secrets/
+
+# Local tooling & runtime logs
+.claude/
+.runtime-logs/

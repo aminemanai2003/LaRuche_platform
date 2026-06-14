@@ -1,55 +1,28 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import kc from './keycloak'
+import { useEffect, useState, type ReactNode } from 'react'
 import { setAuthToken } from '../api/client'
-
-interface AuthState {
-  ready: boolean
-  authenticated: boolean
-  token: string | null
-  username: string | null
-  roles: string[]
-  login: () => void
-  logout: () => void
-}
-
-const AuthContext = createContext<AuthState>({
-  ready: false,
-  authenticated: false,
-  token: null,
-  username: null,
-  roles: [],
-  login: () => {},
-  logout: () => {},
-})
+import { AuthContext, type AuthState } from './auth-context'
+import kc, { initializeKeycloak } from './keycloak'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const devAuth = import.meta.env.VITE_DEV_AUTH === 'true'
   const [state, setState] = useState<AuthState>({
-    ready: false,
-    authenticated: false,
-    token: null,
-    username: null,
-    roles: [],
+    ready: devAuth,
+    authenticated: devAuth,
+    token: devAuth ? 'dev-token' : null,
+    username: devAuth ? 'advisor@wealthmesh.local' : null,
+    roles: devAuth ? ['advisor'] : [],
     login: () => kc.login(),
     logout: () => kc.logout(),
   })
 
   useEffect(() => {
-    // Dev bypass — no Keycloak needed when VITE_DEV_AUTH=true
-    if (import.meta.env.VITE_DEV_AUTH === 'true') {
-      setState(s => ({
-        ...s,
-        ready: true,
-        authenticated: true,
-        token: 'dev-token',
-        username: 'advisor@wealthmesh.local',
-        roles: ['advisor'],
-      }))
-      return
-    }
+    if (devAuth) return
 
-    kc.init({ onLoad: 'check-sso', pkceMethod: 'S256' }).then(auth => {
-      setState(s => ({
-        ...s,
+    let active = true
+    initializeKeycloak().then(auth => {
+      if (!active) return
+      setState(current => ({
+        ...current,
         ready: true,
         authenticated: auth,
         token: kc.token ?? null,
@@ -58,23 +31,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }))
     })
 
-    // Refresh token every 60s
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       kc.updateToken(60).then(refreshed => {
-        if (refreshed) {
-          setState(s => ({ ...s, token: kc.token ?? null }))
+        if (active && refreshed) {
+          setState(current => ({ ...current, token: kc.token ?? null }))
         }
       })
     }, 60_000)
-    return () => clearInterval(interval)
-  }, [])
 
-  // Keep the axios client's Authorization header in sync with the current token.
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
+  }, [devAuth])
+
   useEffect(() => {
     setAuthToken(state.token)
   }, [state.token])
 
   return <AuthContext.Provider value={state}>{children}</AuthContext.Provider>
 }
-
-export const useAuth = () => useContext(AuthContext)

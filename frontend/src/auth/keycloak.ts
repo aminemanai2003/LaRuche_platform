@@ -6,4 +6,13 @@ const _kc = new Keycloak({
   clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID ?? 'web',
 })
 
+let initialization: Promise<boolean> | null = null
+
+export function initializeKeycloak() {
+  if (!initialization) {
+    initialization = _kc.init({ onLoad: 'check-sso', pkceMethod: 'S256' })
+  }
+  return initialization
+}
+
 export default _kc

@@ -1,52 +1,62 @@
-import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { BriefcaseBusiness, TrendingDown, TrendingUp } from 'lucide-react'
 import { getDeals } from '../api/client'
 
 export default function Portfolio() {
   const { data, isLoading, isError } = useQuery({ queryKey: ['deals'], queryFn: getDeals })
 
-  if (isLoading) return <div className="p-6 text-slate-400 text-sm">Loading deals…</div>
-  if (isError || !data) return <div className="p-6 text-red-400 text-sm">Could not load deals.</div>
+  if (isLoading) return <div className="loading-state">Loading deal intelligence...</div>
+  if (isError || !data) return <div className="error-state">Could not load deals.</div>
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold text-white">Portfolio Deals</h1>
+    <div className="page">
+      <header className="page-intro">
+        <div className="page-icon"><BriefcaseBusiness className="h-5 w-5" /></div>
+        <div>
+          <p className="eyebrow">Private markets</p>
+          <h1>Portfolio Deals</h1>
+          <p>Monitor deployed capital, realized outcomes, and current performance.</p>
+        </div>
+      </header>
 
-      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        <table className="w-full text-sm">
+      <section className="surface-card table-shell">
+        <div className="table-toolbar">
+          <div>
+            <h2 className="table-title">Deal book</h2>
+            <p>{data.length} representative investments from the canonical portfolio</p>
+          </div>
+          <span className="status-pill">Live data</span>
+        </div>
+        <table className="data-table">
           <thead>
-            <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase">
-              <th className="text-left px-4 py-3">Deal</th>
-              <th className="text-left px-4 py-3">Sector</th>
-              <th className="text-left px-4 py-3">Geo</th>
-              <th className="text-right px-4 py-3">AUM ($M)</th>
-              <th className="text-right px-4 py-3">TWR (%)</th>
-              <th className="text-left px-4 py-3">Status</th>
+            <tr>
+              <th>Deal</th>
+              <th>Sector</th>
+              <th>Geography</th>
+              <th style={{ textAlign: 'right' }}>AUM ($M)</th>
+              <th style={{ textAlign: 'right' }}>TWR</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {data.map(d => (
-              <tr key={d.name} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
-                <td className="px-4 py-3 text-white font-medium">{d.name}</td>
-                <td className="px-4 py-3 text-slate-300">{d.sector}</td>
-                <td className="px-4 py-3 text-slate-300">{d.geo}</td>
-                <td className="px-4 py-3 text-right text-white">{d.aum.toFixed(1)}</td>
-                <td className="px-4 py-3 text-right">
-                  <span className={`flex items-center justify-end gap-1 ${d.twr >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {d.twr >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {d.twr.toFixed(1)}%
+            {data.map(deal => (
+              <tr key={deal.name}>
+                <td className="deal-name">{deal.name}</td>
+                <td>{deal.sector}</td>
+                <td>{deal.geo}</td>
+                <td style={{ textAlign: 'right', color: '#e4e2e9' }}>{deal.aum.toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }}>
+                  <span className={`quote-change ${deal.twr >= 0 ? 'positive' : 'negative'}`}>
+                    {deal.twr >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {deal.twr.toFixed(1)}%
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <span className="bg-emerald-900/40 text-emerald-400 text-xs px-2 py-0.5 rounded-full">
-                    {d.status}
-                  </span>
-                </td>
+                <td><span className="status-pill">{deal.status}</span></td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </section>
     </div>
   )
 }
