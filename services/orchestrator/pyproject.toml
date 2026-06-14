@@ -7,6 +7,9 @@ dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "python-dotenv>=1.0",
+    "langgraph>=0.2",
+    "langchain-core>=0.3",
+    "redis>=8.0.0",
 ]
 
 [project.optional-dependencies]
