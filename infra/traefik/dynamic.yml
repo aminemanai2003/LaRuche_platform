@@ -1,0 +1,37 @@
+http:
+  middlewares:
+    jwt-auth:
+      forwardAuth:
+        address: "http://orchestrator:8000/auth/verify"
+        authResponseHeaders:
+          - "X-User-Id"
+          - "X-User-Email"
+          - "X-User-Roles"
+
+  routers:
+    api:
+      rule: "PathPrefix(`/api`)"
+      entryPoints: [web]
+      service: orchestrator
+      middlewares: [jwt-auth]
+
+    auth:
+      rule: "PathPrefix(`/auth`)"
+      entryPoints: [web]
+      service: keycloak
+
+    keycloak-direct:
+      rule: "PathPrefix(`/realms`) || PathPrefix(`/resources`) || PathPrefix(`/protocol`)"
+      entryPoints: [web]
+      service: keycloak
+
+  services:
+    orchestrator:
+      loadBalancer:
+        servers:
+          - url: "http://orchestrator:8000"
+
+    keycloak:
+      loadBalancer:
+        servers:
+          - url: "http://keycloak:8080"

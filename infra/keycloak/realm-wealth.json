@@ -1,0 +1,73 @@
+{
+  "realm": "wealth",
+  "enabled": true,
+  "displayName": "Wealth Management",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "roles": {
+    "realm": [
+      { "name": "client", "description": "Wealth management client" },
+      { "name": "advisor", "description": "Financial advisor" },
+      { "name": "admin", "description": "Platform administrator" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "web",
+      "name": "Web App",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:5173/*", "http://localhost/*"],
+      "webOrigins": ["http://localhost:5173", "http://localhost"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "mobile",
+      "name": "Mobile App",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["exp://localhost:8081/*", "wealthmesh://*"],
+      "webOrigins": ["*"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "backend",
+      "name": "Backend Service",
+      "enabled": true,
+      "publicClient": false,
+      "bearerOnly": true,
+      "standardFlowEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "advisor@wealthmesh.local",
+      "email": "advisor@wealthmesh.local",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sarah",
+      "lastName": "Chen",
+      "credentials": [{ "type": "password", "value": "advisor123", "temporary": false }],
+      "realmRoles": ["advisor"]
+    },
+    {
+      "username": "client@wealthmesh.local",
+      "email": "client@wealthmesh.local",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Al-Rashid",
+      "lastName": "Family",
+      "credentials": [{ "type": "password", "value": "client123", "temporary": false }],
+      "realmRoles": ["client"]
+    }
+  ]
+}

@@ -1,19 +1,52 @@
 services:
+  traefik:
+    image: traefik:v3.0
+    ports:
+      - "80:80"
+      - "8080:8080"   # dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infra/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./infra/traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+    networks: [wealthmesh]
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: wealthmesh
+      KC_DB_PASSWORD: changeme
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./infra/keycloak:/opt/keycloak/data/import
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [wealthmesh]
+
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: wealthmesh
       POSTGRES_USER: wealthmesh
       POSTGRES_PASSWORD: changeme
+      # keycloak needs its own DB — auto-create via init script
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U wealthmesh"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks: [wealthmesh]
 
   redis:
     image: redis:7-alpine
@@ -24,6 +57,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks: [wealthmesh]
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -31,15 +65,17 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
+    networks: [wealthmesh]
 
   mailhog:
     image: mailhog/mailhog
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
+    networks: [wealthmesh]
 
   langfuse:
-    image: langfuse/langfuse:latest
+    image: langfuse/langfuse:3
     ports:
       - "3000:3000"
     environment:
@@ -47,9 +83,11 @@ services:
       NEXTAUTH_SECRET: changeme-langfuse-secret
       NEXTAUTH_URL: http://localhost:3000
       SALT: changeme-salt
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "true"
     depends_on:
       postgres:
         condition: service_healthy
+    networks: [wealthmesh]
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:latest
@@ -58,6 +96,11 @@ services:
     command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri /mlflow
     volumes:
       - mlflow_data:/mlflow
+    networks: [wealthmesh]
+
+networks:
+  wealthmesh:
+    driver: bridge
 
 volumes:
   postgres_data:
