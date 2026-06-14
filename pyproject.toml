@@ -1,6 +1,7 @@
 [tool.uv.workspace]
 members = [
     "libs/agentkit",
+    "libs/db",
     "services/orchestrator",
     "services/agent-financial",
     "services/agent-market",
@@ -29,6 +30,7 @@ asyncio_mode = "auto"
 addopts = "--import-mode=importlib"
 testpaths = [
     "libs/agentkit/tests",
+    "libs/db/tests",
     "services/orchestrator/tests",
     "services/agent-financial/tests",
     "services/agent-market/tests",
@@ -36,4 +38,9 @@ testpaths = [
     "services/agent-action/tests",
     "services/agent-qa/tests",
     "eval/tests",
+]
+
+[dependency-groups]
+dev = [
+    "aiosqlite>=0.22.1",
 ]
