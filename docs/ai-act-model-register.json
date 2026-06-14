@@ -1,0 +1,90 @@
+{
+  "register_version": "1.0.0",
+  "system": "WealthMesh Agentic Mesh",
+  "owner": "Stage Value — Private Banking AI",
+  "last_updated": "2026-06-14",
+  "regulation": "EU AI Act (Regulation 2024/1689)",
+  "risk_classification": "Limited Risk",
+  "models": [
+    {
+      "id": "qwen2.5:3b",
+      "provider": "Alibaba Cloud / Ollama (local)",
+      "role": "Primary LLM — financial assistant, document RAG, QA generation",
+      "deployment": "local",
+      "parameters": "3B",
+      "quantization": "Q4_K_M",
+      "context_window": 8192,
+      "license": "Apache 2.0",
+      "personal_data_processed": false,
+      "training_data_cutoff": "2024-09",
+      "risk_notes": "Runs entirely on-premises; no data sent to third parties.",
+      "transparency_obligation": "Users are informed they are interacting with an AI assistant.",
+      "human_oversight": "All outbound actions (email, WhatsApp) require explicit user confirmation."
+    },
+    {
+      "id": "qwen2.5:7b",
+      "provider": "Alibaba Cloud / Ollama (local)",
+      "role": "Fallback LLM for higher-quality responses when GPU allows",
+      "deployment": "local",
+      "parameters": "7B",
+      "quantization": "Q4_K_M",
+      "context_window": 8192,
+      "license": "Apache 2.0",
+      "personal_data_processed": false,
+      "training_data_cutoff": "2024-09",
+      "risk_notes": "Same on-premises deployment as primary model.",
+      "transparency_obligation": "Same as primary model.",
+      "human_oversight": "Same as primary model."
+    },
+    {
+      "id": "faster-whisper/small",
+      "provider": "Systran / faster-whisper (local)",
+      "role": "Speech-to-text transcription in voice/callbot service",
+      "deployment": "local",
+      "parameters": "244M",
+      "license": "MIT",
+      "personal_data_processed": true,
+      "personal_data_type": "Voice recordings (transient, not persisted)",
+      "risk_notes": "Audio is transcribed in-memory and not stored. Processed locally.",
+      "transparency_obligation": "Voice interface displays recording indicator while active.",
+      "human_oversight": "Transcript shown to user before any action is taken."
+    },
+    {
+      "id": "piper-tts/en_US-amy-medium",
+      "provider": "Rhasspy / Piper (local)",
+      "role": "Text-to-speech synthesis in voice/callbot service",
+      "deployment": "local",
+      "parameters": "~5M",
+      "license": "MIT",
+      "personal_data_processed": false,
+      "risk_notes": "Generates audio from text responses; no personal data in model inputs.",
+      "transparency_obligation": "Audio responses clearly identified as AI-generated.",
+      "human_oversight": "N/A — output only."
+    }
+  ],
+  "data_flows": {
+    "personal_data_processed": [
+      "User JWT claims (user_id, email, roles) — used for auth and audit logging only",
+      "Voice audio — transient, in-memory transcription only, never persisted",
+      "Conversation messages — stored in Redis (TTL 24h) for context window"
+    ],
+    "data_not_processed": [
+      "Financial positions are simulated seed data, not real client holdings",
+      "No biometric data is stored",
+      "No training on user data"
+    ]
+  },
+  "gdpr_posture": {
+    "lawful_basis": "Legitimate interest (B2B financial advisor tooling)",
+    "right_to_erasure": "DELETE /api/gdpr/delete-my-data endpoint implemented",
+    "data_retention": "Conversations: Redis TTL 24h. Audit log: 90 days. Deletion requests: 7 years.",
+    "data_minimisation": "Only user_id and email from JWT; no address, DOB, or account numbers.",
+    "dpa_contact": "dpa@stage-value.local"
+  },
+  "transparency_measures": [
+    "Login screen states 'AI-powered advisor'",
+    "Chat interface shows AI avatar and response indicator",
+    "All action confirmations clearly identify the AI as the initiator",
+    "This model register is publicly accessible in the repository"
+  ]
+}

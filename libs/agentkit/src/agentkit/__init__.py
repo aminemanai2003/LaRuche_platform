@@ -6,6 +6,7 @@ Public surface:
     MCP tools     → agentkit.mcp
     LLM client    → agentkit.llm
     Tracing       → agentkit.tracing
+    Guardrails    → agentkit.guardrails
 """
 
 __version__ = "0.1.0"
@@ -19,6 +20,7 @@ from agentkit.a2a import (
     a2a_router,
     task_handler,
 )
+from agentkit.guardrails import GuardrailViolation, check_message, is_safe
 from agentkit.llm import LLMClient, ModelRole
 from agentkit.mcp import MCPRegistry, MCPTool, ToolResult
 from agentkit.tracing import trace_span
@@ -41,4 +43,8 @@ __all__ = [
     "ToolResult",
     # Tracing
     "trace_span",
+    # Guardrails
+    "GuardrailViolation",
+    "check_message",
+    "is_safe",
 ]
