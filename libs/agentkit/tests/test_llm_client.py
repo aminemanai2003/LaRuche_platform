@@ -51,7 +51,11 @@ async def test_embed_success() -> None:
     assert len(vecs[0]) == 768
 
 
-def test_llm_client_requires_context_manager() -> None:
+def test_llm_client_lazily_creates_http_client() -> None:
+    # The agents hold a module-level LLMClient and call chat() directly (no
+    # `async with`), so _http() must lazily create the client instead of raising.
     llm = LLMClient()
-    with pytest.raises(RuntimeError, match="context manager"):
-        llm._http()
+    assert llm._client is None
+    client = llm._http()
+    assert isinstance(client, httpx.AsyncClient)
+    assert llm._http() is client  # reused, not recreated

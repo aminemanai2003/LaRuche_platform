@@ -1,5 +1,5 @@
 """
-WealthMesh demo script — reproduces the Mermaid private banking conversation.
+WealthMesh demo script — reproduces a full private-banking conversation.
 
 Usage:
     uv run python scripts/demo.py [--url http://localhost:8000]
@@ -52,17 +52,17 @@ _CONVERSATION = [
     },
     {
         "turn": 7,
-        "message": "Search for the Wella factsheet document.",
-        "expect": ["Wella"],
+        "message": "Search for the Aurora Brands factsheet document.",
+        "expect": ["Aurora"],
     },
     {
         "turn": 8,
-        "message": "Build a portfolio performance report for Client Mustapha.",
+        "message": "Build a portfolio performance report for the client.",
         "expect": ["AUM", "report"],
     },
     {
         "turn": 9,
-        "message": "Send the report by email to mustapha@wealthmesh.local — confirm send.",
+        "message": "Send the report by email to client@wealthmesh.local — confirm send.",
         "expect": ["email", "confirm"],
     },
 ]

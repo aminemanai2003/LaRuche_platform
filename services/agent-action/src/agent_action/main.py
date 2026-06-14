@@ -59,10 +59,10 @@ class ReportBuildTool(MCPTool):
             f"Portfolio Performance Report — {datetime.now(UTC).strftime('%Y-%m-%d')}\n"
             f"Client: {client_name}\n\n"
             "AUM: $20.4M | TWR: 178.65% | Annualized: 7.14%\n"
-            "IRR: 8.23% | Sharpe: 0.58 | Volatility: 12.27%\n"
+            "IRR: 8.30% | Sharpe: 0.58 | Volatility: 12.27%\n"
             "Profit: $7.85M | Deals: 48\n\n"
-            "Geography: Asia 37% | NA 35% | Global 16% | EU 4%\n"
-            "Sectors: RE 45% | PE 35% | EQ 15% | Credit 6%\n"
+            "Geography: Asia 37% | NA 35% | Global 16% | Europe 8% | ME 4%\n"
+            "Sectors: RE 45% | PE 35% | EQ 15% | Credit 5%\n"
         )
         if format == "html":
             report = f"<pre>{report}</pre>"

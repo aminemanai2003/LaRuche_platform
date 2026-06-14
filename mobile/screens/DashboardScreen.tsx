@@ -1,21 +1,40 @@
-import { View, Text, ScrollView, StyleSheet } from 'react-native'
+import { useEffect, useState } from 'react'
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native'
+import { fetchSummary, fetchAllocation, type PortfolioSummary } from '../api/client'
 
-const METRICS = [
-  { label: 'Total AUM', value: '$20.4M', sub: '+7.14% annualized', color: '#34d399' },
-  { label: 'TWR', value: '178.65%', sub: 'Since inception', color: '#60a5fa' },
-  { label: 'IRR', value: '8.23%', sub: 'Internal Rate of Return', color: '#a78bfa' },
-  { label: 'Sharpe Ratio', value: '0.58', sub: 'Volatility: 12.27%', color: '#fbbf24' },
-]
-
-const GEO = [
-  { label: 'Asia', pct: 37, color: '#3b82f6' },
-  { label: 'North America', pct: 35, color: '#10b981' },
-  { label: 'Global', pct: 16, color: '#8b5cf6' },
-  { label: 'Europe', pct: 4, color: '#f59e0b' },
-  { label: 'Other', pct: 8, color: '#6b7280' },
-]
+const BAR_COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#6b7280']
 
 export default function DashboardScreen() {
+  const [summary, setSummary] = useState<PortfolioSummary | null>(null)
+  const [geo, setGeo] = useState<{ label: string; pct: number; color: string }[]>([])
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    Promise.all([fetchSummary(), fetchAllocation()])
+      .then(([s, a]) => {
+        setSummary(s)
+        setGeo(
+          Object.entries(a.geography).map(([label, pct], i) => ({
+            label,
+            pct,
+            color: BAR_COLORS[i % BAR_COLORS.length],
+          })),
+        )
+      })
+      .catch(() => setError(true))
+  }, [])
+
+  if (error) return <View style={s.container}><Text style={s.cardSub}>Could not load data.</Text></View>
+  if (!summary) return <View style={[s.container, { justifyContent: 'center' }]}><ActivityIndicator color="#a78bfa" /></View>
+
+  const METRICS = [
+    { label: 'Total AUM', value: summary.aum_fmt, sub: `+${summary.annualized_pct}% annualized`, color: '#34d399' },
+    { label: 'TWR', value: `${summary.twr_pct}%`, sub: 'Since inception', color: '#60a5fa' },
+    { label: 'IRR', value: `${summary.irr_pct.toFixed(2)}%`, sub: 'Internal Rate of Return', color: '#a78bfa' },
+    { label: 'Sharpe Ratio', value: summary.sharpe.toFixed(2), sub: `Volatility: ${summary.volatility_pct}%`, color: '#fbbf24' },
+  ]
+  const GEO = geo
+
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <Text style={s.heading}>Portfolio Overview</Text>
@@ -47,9 +66,9 @@ export default function DashboardScreen() {
 
       {/* Summary row */}
       <View style={[s.section, s.rowSection]}>
-        <Stat label="Deals" value="42" />
-        <Stat label="Profit" value="$7.85M" />
-        <Stat label="Volatility" value="12.27%" />
+        <Stat label="Deals" value={String(summary.num_active)} />
+        <Stat label="Profit" value={summary.profit_fmt} />
+        <Stat label="Volatility" value={`${summary.volatility_pct}%`} />
       </View>
     </ScrollView>
   )

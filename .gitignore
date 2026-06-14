@@ -20,6 +20,8 @@ node_modules/
 dist/
 .expo/
 *.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/
 
 # Docker / K8s
 *.pem

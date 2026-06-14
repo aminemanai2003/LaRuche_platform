@@ -50,6 +50,7 @@
   ],
   "users": [
     {
+      "id": "00000000-0000-0000-0000-000000000001",
       "username": "advisor@wealthmesh.local",
       "email": "advisor@wealthmesh.local",
       "enabled": true,
@@ -60,12 +61,13 @@
       "realmRoles": ["advisor"]
     },
     {
+      "id": "00000000-0000-0000-0000-000000000002",
       "username": "client@wealthmesh.local",
       "email": "client@wealthmesh.local",
       "enabled": true,
       "emailVerified": true,
-      "firstName": "Al-Rashid",
-      "lastName": "Family",
+      "firstName": "Meridian",
+      "lastName": "Family Office",
       "credentials": [{ "type": "password", "value": "client123", "temporary": false }],
       "realmRoles": ["client"]
     }

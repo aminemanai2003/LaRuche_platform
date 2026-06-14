@@ -1,35 +1,36 @@
 import { TrendingUp, DollarSign, BarChart3, Globe } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { getPortfolioSummary, getAllocation } from '../api/client'
 
-const METRICS = [
-  { label: 'Total AUM', value: '$20.4M', sub: '+7.14% annualized', icon: DollarSign, color: 'text-emerald-400' },
-  { label: 'TWR', value: '178.65%', sub: 'Since inception', icon: TrendingUp, color: 'text-blue-400' },
-  { label: 'IRR', value: '8.23%', sub: 'Internal Rate of Return', icon: BarChart3, color: 'text-purple-400' },
-  { label: 'Sharpe Ratio', value: '0.58', sub: 'Vol: 12.27%', icon: Globe, color: 'text-amber-400' },
-]
-
-const GEO = [
-  { label: 'Asia', pct: 37, color: 'bg-blue-500' },
-  { label: 'North America', pct: 35, color: 'bg-emerald-500' },
-  { label: 'Global', pct: 16, color: 'bg-purple-500' },
-  { label: 'Europe', pct: 4, color: 'bg-amber-500' },
-  { label: 'Other', pct: 8, color: 'bg-slate-500' },
-]
-
-const SECTORS = [
-  { label: 'Real Estate', pct: 45, color: 'bg-blue-500' },
-  { label: 'Private Equity', pct: 35, color: 'bg-emerald-500' },
-  { label: 'Equities', pct: 15, color: 'bg-purple-500' },
-  { label: 'Credit', pct: 5, color: 'bg-amber-500' },
-]
+const BAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-slate-500']
 
 export default function Dashboard() {
+  const summary = useQuery({ queryKey: ['summary'], queryFn: getPortfolioSummary })
+  const alloc = useQuery({ queryKey: ['allocation'], queryFn: getAllocation })
+
+  if (summary.isLoading || alloc.isLoading) {
+    return <div className="p-6 text-slate-400 text-sm">Loading portfolio…</div>
+  }
+  if (summary.isError || alloc.isError || !summary.data || !alloc.data) {
+    return <div className="p-6 text-red-400 text-sm">Could not load portfolio data.</div>
+  }
+
+  const s = summary.data
+  const metrics = [
+    { label: 'Total AUM', value: s.aum_fmt, sub: `+${s.annualized_pct}% annualized`, icon: DollarSign, color: 'text-emerald-400' },
+    { label: 'TWR', value: `${s.twr_pct}%`, sub: 'Since inception', icon: TrendingUp, color: 'text-blue-400' },
+    { label: 'IRR', value: `${s.irr_pct.toFixed(2)}%`, sub: 'Internal Rate of Return', icon: BarChart3, color: 'text-purple-400' },
+    { label: 'Sharpe Ratio', value: s.sharpe.toFixed(2), sub: `Vol: ${s.volatility_pct}%`, icon: Globe, color: 'text-amber-400' },
+  ]
+  const geo = Object.entries(alloc.data.geography).map(([label, pct], i) => ({ label, pct, color: BAR_COLORS[i % BAR_COLORS.length] }))
+  const sectors = Object.entries(alloc.data.sector).map(([label, pct], i) => ({ label, pct, color: BAR_COLORS[i % BAR_COLORS.length] }))
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold text-white">Portfolio Overview</h1>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {METRICS.map(m => (
+        {metrics.map(m => (
           <div key={m.label} className="bg-slate-800 rounded-xl p-4 border border-slate-700">
             <div className="flex items-center gap-2 mb-2">
               <m.icon className={`w-4 h-4 ${m.color}`} />
@@ -41,26 +42,26 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Breakdowns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <BreakdownCard title="Geographic Allocation" data={GEO} />
-        <BreakdownCard title="Sector Allocation" data={SECTORS} />
+        <BreakdownCard title="Geographic Allocation" data={geo} />
+        <BreakdownCard title="Sector Allocation" data={sectors} />
       </div>
 
-      {/* Summary */}
       <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
         <h2 className="text-sm font-semibold text-slate-300 mb-3">Portfolio Summary</h2>
         <div className="grid grid-cols-3 gap-4 text-center">
-          <Stat label="Active Deals" value="42" />
-          <Stat label="Total Profit" value="$7.85M" />
-          <Stat label="Volatility" value="12.27%" />
+          <Stat label="Active Deals" value={String(s.num_active)} />
+          <Stat label="Total Profit" value={s.profit_fmt} />
+          <Stat label="Volatility" value={`${s.volatility_pct}%`} />
         </div>
       </div>
     </div>
   )
 }
 
-function BreakdownCard({ title, data }: { title: string; data: typeof GEO }) {
+type Row = { label: string; pct: number; color: string }
+
+function BreakdownCard({ title, data }: { title: string; data: Row[] }) {
   return (
     <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
       <h2 className="text-sm font-semibold text-slate-300 mb-3">{title}</h2>

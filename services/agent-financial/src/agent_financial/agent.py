@@ -35,12 +35,31 @@ registry.register(TopDealsTool())
 
 _TOOL_MAP: list[tuple[list[str], str, dict[str, Any]]] = [
     (
-        ["geography", "region", "asia", "europe", "america", "middle east", "global"],
+        [
+            "geography",
+            "geographic",
+            "geographical",
+            "region",
+            "allocation",
+            "asia",
+            "europe",
+            "america",
+            "middle east",
+            "global",
+        ],
         "portfolio.geo_breakdown",
         {},
     ),
     (
-        ["sector", "asset class", "real estate", "private equity", "equities", "credit"],
+        [
+            "sector",
+            "asset class",
+            "allocation",
+            "real estate",
+            "private equity",
+            "equities",
+            "credit",
+        ],
         "portfolio.sector_breakdown",
         {},
     ),
@@ -68,9 +87,12 @@ def _pick_tools(message: str) -> list[tuple[str, dict[str, Any]]]:
     picked: list[tuple[str, dict[str, Any]]] = []
     seen: set[str] = set()
     for keywords, tool_name, kwargs in _TOOL_MAP:
-        if any(kw in lower for kw in keywords) and tool_name not in seen:
+        # Dedup by tool *and* args so multiple metrics.compute calls (aum, twr,
+        # irr, …) are all kept for a multi-metric question.
+        sig = f"{tool_name}:{sorted(kwargs.items())}"
+        if any(kw in lower for kw in keywords) and sig not in seen:
             picked.append((tool_name, kwargs))
-            seen.add(tool_name)
+            seen.add(sig)
     return picked or [("portfolio.summary", {})]
 
 

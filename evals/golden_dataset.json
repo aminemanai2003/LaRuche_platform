@@ -79,9 +79,9 @@
   {
     "id": "doc-001",
     "agent": "docs",
-    "question": "What is the Wella factsheet about?",
-    "expected_keywords": ["Wella", "beauty", "investment"],
-    "expected_contains": "Wella"
+    "question": "What is the Aurora Brands factsheet about?",
+    "expected_keywords": ["Aurora", "brand", "investment"],
+    "expected_contains": "Aurora"
   },
   {
     "id": "doc-002",

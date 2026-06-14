@@ -64,12 +64,24 @@ async def get_current_user(request: Request) -> UserContext:
 
         jwks_client = PyJWKClient(jwks_url)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
+        issuer = f"{keycloak_url}/realms/{realm}"
         payload: dict[str, Any] = pyjwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
-            audience=os.getenv("KEYCLOAK_CLIENT_ID", "backend"),
+            issuer=issuer,
+            options={"verify_aud": False, "require": ["exp", "iss", "sub"]},
         )
+        allowed_clients = {
+            client.strip()
+            for client in os.getenv("KEYCLOAK_ALLOWED_CLIENTS", "web,mobile,backend").split(",")
+            if client.strip()
+        }
+        authorized_party = payload.get("azp")
+        if authorized_party not in allowed_clients:
+            raise pyjwt.InvalidTokenError(
+                f"Unauthorized client: {authorized_party or 'missing azp'}"
+            )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

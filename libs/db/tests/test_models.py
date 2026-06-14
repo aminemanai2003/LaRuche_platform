@@ -59,7 +59,7 @@ async def _make_client(session: AsyncSession, user: User) -> Client:
     client = Client(
         user_id=user.id,
         code="CLT001",
-        name="Al-Rashid Family Office",
+        name="Meridian Family Office",
         tier=ClientTier.UHNWI,
         currency="USD",
         created_at=_now(),
@@ -108,7 +108,7 @@ async def test_create_client(session: AsyncSession):
     user = await _make_user(session)
     client = await _make_client(session, user)
     assert client.id is not None
-    assert client.name == "Al-Rashid Family Office"
+    assert client.name == "Meridian Family Office"
     assert client.tier == ClientTier.UHNWI
 
 
@@ -133,7 +133,7 @@ async def test_create_deal(session: AsyncSession):
 
     deal = Deal(
         portfolio_id=portfolio.id,
-        name="Project Taka",
+        name="Project Delta",
         asset_class=AssetClass.PRIVATE_EQUITY,
         geography=Geography.ASIA,
         status=DealStatus.ACTIVE,
@@ -159,7 +159,7 @@ async def test_deal_exited_status(session: AsyncSession):
 
     deal = Deal(
         portfolio_id=portfolio.id,
-        name="Wella Company",
+        name="Aurora Brands",
         asset_class=AssetClass.PRIVATE_EQUITY,
         geography=Geography.NORTH_AMERICA,
         status=DealStatus.EXITED,

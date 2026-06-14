@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import kc from './keycloak'
+import { setAuthToken } from '../api/client'
 
 interface AuthState {
   ready: boolean
@@ -67,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, 60_000)
     return () => clearInterval(interval)
   }, [])
+
+  // Keep the axios client's Authorization header in sync with the current token.
+  useEffect(() => {
+    setAuthToken(state.token)
+  }, [state.token])
 
   return <AuthContext.Provider value={state}>{children}</AuthContext.Provider>
 }

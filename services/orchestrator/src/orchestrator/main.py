@@ -8,6 +8,8 @@ from typing import Any
 
 from agentkit.auth import UserContext, get_current_user
 from agentkit.guardrails import GuardrailViolation, check_message
+from agentkit.market import get_market
+from agentkit.portfolio import DEALS, GEO, SECTOR, TOP_DEALS, get_metrics
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -61,6 +63,44 @@ async def me(  # noqa: B008
         "email": user.email,
         "roles": user.roles,
     }
+
+
+# ── Portfolio & market data (read-only, auth-protected) ─────────────────────────
+
+
+@app.get("/api/portfolio/summary")
+async def portfolio_summary(  # noqa: B008
+    user: UserContext = Depends(get_current_user),  # noqa: B008
+) -> dict[str, Any]:
+    return get_metrics()
+
+
+@app.get("/api/portfolio/allocation")
+async def portfolio_allocation(  # noqa: B008
+    user: UserContext = Depends(get_current_user),  # noqa: B008
+) -> dict[str, Any]:
+    return {"geography": GEO, "sector": SECTOR}
+
+
+@app.get("/api/portfolio/deals")
+async def portfolio_deals(  # noqa: B008
+    user: UserContext = Depends(get_current_user),  # noqa: B008
+) -> list[dict[str, Any]]:
+    return DEALS
+
+
+@app.get("/api/portfolio/top-deals")
+async def portfolio_top_deals(  # noqa: B008
+    user: UserContext = Depends(get_current_user),  # noqa: B008
+) -> list[dict[str, Any]]:
+    return TOP_DEALS
+
+
+@app.get("/api/market")
+async def market(  # noqa: B008
+    user: UserContext = Depends(get_current_user),  # noqa: B008
+) -> dict[str, Any]:
+    return get_market()
 
 
 # ── Chat (SSE streaming) ───────────────────────────────────────────────────────

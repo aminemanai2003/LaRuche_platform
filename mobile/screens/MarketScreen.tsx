@@ -1,33 +1,36 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native'
-
-const QUOTES = [
-  { id: 'SPX', name: 'S&P 500', price: 5247.49, change: 0.42 },
-  { id: 'AAPL', name: 'Apple', price: 189.30, change: -0.18 },
-  { id: 'BTC', name: 'Bitcoin', price: 67450.0, change: 2.33 },
-  { id: 'GLD', name: 'Gold (oz)', price: 2328.60, change: 0.15 },
-  { id: 'TSLA', name: 'Tesla', price: 175.22, change: 1.05 },
-  { id: 'USDEUR', name: 'USD/EUR', price: 0.9285, change: -0.05 },
-]
+import { useEffect, useState } from 'react'
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native'
+import { fetchMarket, type MarketData } from '../api/client'
 
 export default function MarketScreen() {
+  const [market, setMarket] = useState<MarketData | null>(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    fetchMarket().then(setMarket).catch(() => setError(true))
+  }, [])
+
+  if (error) return <View style={s.container}><Text style={s.name}>Could not load market data.</Text></View>
+  if (!market) return <View style={[s.container, { justifyContent: 'center' }]}><ActivityIndicator color="#a78bfa" /></View>
+
   return (
     <View style={s.container}>
       <FlatList
-        data={QUOTES}
-        keyExtractor={q => q.id}
+        data={market.quotes}
+        keyExtractor={q => q.symbol}
         contentContainerStyle={s.list}
         ListHeaderComponent={<Text style={s.heading}>Market Data</Text>}
         numColumns={2}
         columnWrapperStyle={s.row}
         renderItem={({ item }) => (
           <View style={s.card}>
-            <Text style={s.symbol}>{item.id}</Text>
+            <Text style={s.symbol}>{item.symbol}</Text>
             <Text style={s.name}>{item.name}</Text>
             <Text style={s.price}>
               {item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-            <Text style={[s.change, { color: item.change >= 0 ? '#34d399' : '#f87171' }]}>
-              {item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}%
+            <Text style={[s.change, { color: item.change_pct >= 0 ? '#34d399' : '#f87171' }]}>
+              {item.change_pct >= 0 ? '+' : ''}{item.change_pct.toFixed(2)}%
             </Text>
           </View>
         )}

@@ -10,16 +10,16 @@ client = TestClient(app)
 
 async def test_ingest():
     t = DocIngestTool()
-    r = await t.execute(doc_id="test_doc", content="This is a test document about Wella.")
+    r = await t.execute(doc_id="test_doc", content="This is a test document about Aurora Brands.")
     assert r.ok
     assert "test_doc" in r.content
 
 
 async def test_search_hit():
     t = RAGSearchTool()
-    r = await t.execute(query="Wella investment moic", top_k=2)
+    r = await t.execute(query="Aurora investment moic", top_k=2)
     assert r.ok
-    assert "Wella" in r.content
+    assert "Aurora" in r.content
 
 
 async def test_search_miss():

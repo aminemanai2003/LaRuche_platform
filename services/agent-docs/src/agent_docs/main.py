@@ -23,26 +23,26 @@ _COLLECTION = "wealth_docs"
 
 # In-memory fallback doc store (used when Qdrant is not running)
 _DOC_STORE: dict[str, str] = {
-    "wella_factsheet": (
-        "Wella Company — Investment Fact Sheet\n"
+    "aurora_factsheet": (
+        "Aurora Brands — Investment Fact Sheet\n"
         "Acquired: June 2015 | Exited: June 2022\n"
-        "Asset Class: Private Equity | Geography: North America\n"
+        "Asset Class: Private Equity | Geography: Global\n"
         "Commitment: $500K | Exit NAV: $775K | MOIC: 1.55x\n"
-        "Wella is a global professional hair care brand sold by P&G."
+        "Aurora Brands is a global premium consumer-products group."
     ),
-    "project_taka": (
-        "Project Taka — Investment Memo\n"
+    "project_delta": (
+        "Project Delta — Investment Memo\n"
         "Entry: March 2018 | Status: Active\n"
         "Asset Class: Private Equity | Geography: Asia\n"
         "Commitment: $400K | Current NAV: $588K | MOIC: 1.47x\n"
         "Growth equity stake in an Asian fintech lending platform."
     ),
     "portfolio_overview": (
-        "Al-Rashid Family Office — Portfolio Overview 2024\n"
+        "Meridian Family Office — Portfolio Overview 2025\n"
         "Total AUM: $20.4M across 48 deals\n"
         "ITD TWR: 178.65% | Annualized: 7.14% | Sharpe: 0.58\n"
-        "Geography: Asia 37%, North America 35%, Global 16%, Europe 4%\n"
-        "Sectors: Real Estate 45%, Private Equity 35%, Equities 15%, Credit 6%"
+        "Geography: Asia 37%, North America 35%, Global 16%, Europe 8%, Middle East 4%\n"
+        "Sectors: Real Estate 45%, Private Equity 35%, Equities 15%, Credit 5%"
     ),
 }
 

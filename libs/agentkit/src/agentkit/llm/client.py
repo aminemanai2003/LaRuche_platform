@@ -86,8 +86,10 @@ class LLMClient:
             await self._client.aclose()
 
     def _http(self) -> httpx.AsyncClient:
+        # Lazily create the client so LLMClient works both as an async context
+        # manager and as a long-lived module-level singleton (as the agents use it).
         if self._client is None:
-            raise RuntimeError("LLMClient must be used as an async context manager")
+            self._client = httpx.AsyncClient(timeout=self.timeout)
         return self._client
 
     def _chat_payload(

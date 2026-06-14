@@ -1,15 +1,13 @@
 import { TrendingUp, TrendingDown } from 'lucide-react'
-
-const DEALS = [
-  { name: 'Wella Beauty Holdings', sector: 'Consumer', geo: 'Global', status: 'Active', aum: 3.2, twr: 42.1 },
-  { name: 'Project Taka', sector: 'Real Estate', geo: 'Asia', status: 'Active', aum: 2.8, twr: 28.5 },
-  { name: 'NA Tech Fund IV', sector: 'Private Equity', geo: 'NA', status: 'Active', aum: 2.1, twr: 65.3 },
-  { name: 'APAC Logistics Hub', sector: 'Real Estate', geo: 'Asia', status: 'Active', aum: 1.9, twr: 19.2 },
-  { name: 'EU Green Bond', sector: 'Credit', geo: 'Europe', status: 'Active', aum: 1.5, twr: 11.0 },
-  { name: 'SEA Growth Fund', sector: 'Equities', geo: 'Asia', status: 'Active', aum: 1.4, twr: 33.7 },
-]
+import { useQuery } from '@tanstack/react-query'
+import { getDeals } from '../api/client'
 
 export default function Portfolio() {
+  const { data, isLoading, isError } = useQuery({ queryKey: ['deals'], queryFn: getDeals })
+
+  if (isLoading) return <div className="p-6 text-slate-400 text-sm">Loading deals…</div>
+  if (isError || !data) return <div className="p-6 text-red-400 text-sm">Could not load deals.</div>
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold text-white">Portfolio Deals</h1>
@@ -27,7 +25,7 @@ export default function Portfolio() {
             </tr>
           </thead>
           <tbody>
-            {DEALS.map(d => (
+            {data.map(d => (
               <tr key={d.name} className="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
                 <td className="px-4 py-3 text-white font-medium">{d.name}</td>
                 <td className="px-4 py-3 text-slate-300">{d.sector}</td>

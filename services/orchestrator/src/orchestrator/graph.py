@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from collections.abc import AsyncIterator
 from typing import Annotated, Any, TypedDict
 
@@ -113,10 +114,16 @@ _ROUTING_RULES: list[tuple[str, list[str]]] = [
 
 def _route(message: str) -> list[str]:
     lower = message.lower()
+    # Whole-word tokens, so single-word keywords don't match inside other words
+    # (e.g. "rate" must not match "generate").
+    tokens = set(re.findall(r"[a-z0-9&]+", lower))
     matched: list[str] = []
     for agent, keywords in _ROUTING_RULES:
-        if any(kw in lower for kw in keywords):
-            matched.append(agent)
+        for kw in keywords:
+            hit = kw in lower if (" " in kw or "&" in kw) else kw in tokens
+            if hit:
+                matched.append(agent)
+                break
     return matched or ["financial"]  # default to financial assistant
 
 

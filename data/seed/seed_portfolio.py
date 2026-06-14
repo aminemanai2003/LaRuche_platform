@@ -76,8 +76,11 @@ async def seed() -> None:
 
     async for session in get_session():
         # User
+        # keycloak_id matches the fixed user id in infra/keycloak/realm-wealth.json,
+        # so a Keycloak login (sub) maps deterministically to this client's portfolio.
         user = User(
-            email="rashid@familyoffice.example",
+            email="client@wealthmesh.local",
+            keycloak_id="00000000-0000-0000-0000-000000000002",
             role=UserRole.CLIENT,
             created_at=_now(),
         )
@@ -88,7 +91,7 @@ async def seed() -> None:
         client = Client(
             user_id=user.id,
             code="CLT-001",
-            name="Al-Rashid Family Office",
+            name="Meridian Family Office",
             tier=ClientTier.UHNWI,
             currency="USD",
             created_at=_now(),
@@ -99,7 +102,7 @@ async def seed() -> None:
         # Portfolio (inception 2013-01-01 — earliest deal)
         portfolio = Portfolio(
             client_id=client.id,
-            name="Al-Rashid Main Portfolio",
+            name="Meridian Core Portfolio",
             currency="USD",
             inception_date=DEALS[0].entry_date,
             created_at=_now(),

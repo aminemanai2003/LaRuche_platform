@@ -1,20 +1,23 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native'
-
-const DEALS = [
-  { id: '1', name: 'Wella Beauty Holdings', sector: 'Consumer', aum: 3.2, twr: 42.1 },
-  { id: '2', name: 'Project Taka', sector: 'Real Estate', aum: 2.8, twr: 28.5 },
-  { id: '3', name: 'NA Tech Fund IV', sector: 'Private Equity', aum: 2.1, twr: 65.3 },
-  { id: '4', name: 'APAC Logistics Hub', sector: 'Real Estate', aum: 1.9, twr: 19.2 },
-  { id: '5', name: 'EU Green Bond', sector: 'Credit', aum: 1.5, twr: 11.0 },
-  { id: '6', name: 'SEA Growth Fund', sector: 'Equities', aum: 1.4, twr: 33.7 },
-]
+import { useEffect, useState } from 'react'
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native'
+import { fetchDeals, type Deal } from '../api/client'
 
 export default function PortfolioScreen() {
+  const [deals, setDeals] = useState<Deal[] | null>(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    fetchDeals().then(setDeals).catch(() => setError(true))
+  }, [])
+
+  if (error) return <View style={s.container}><Text style={s.sector}>Could not load deals.</Text></View>
+  if (!deals) return <View style={[s.container, { justifyContent: 'center' }]}><ActivityIndicator color="#a78bfa" /></View>
+
   return (
     <View style={s.container}>
       <FlatList
-        data={DEALS}
-        keyExtractor={d => d.id}
+        data={deals}
+        keyExtractor={d => d.name}
         contentContainerStyle={s.list}
         ListHeaderComponent={<Text style={s.heading}>Active Deals</Text>}
         renderItem={({ item }) => (

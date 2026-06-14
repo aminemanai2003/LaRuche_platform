@@ -2,7 +2,7 @@
 
 A production-grade AI platform for private banking / wealth management built as a fleet of specialist AI agents communicating over the **A2A protocol**, orchestrated by **LangGraph**, and secured by **Keycloak PKCE**.
 
-Inspired by the Mermaid private banking app conversation flow — AUM queries, TWR, IRR, Sharpe ratio, geographic/sector breakdowns, document RAG, email actions, and voice callbot.
+A conversational private-banking assistant covering AUM queries, TWR, IRR, Sharpe ratio, geographic/sector breakdowns, document RAG, email actions, and a voice callbot.
 
 ---
 
@@ -94,9 +94,27 @@ docker compose -f docker-compose.dev.yml up -d
 uv run pytest services/ libs/ -q
 ```
 
-### Dev bypass (no Keycloak needed)
+### Authentication
 
-When `KEYCLOAK_URL` is not set, `get_current_user()` returns a hardcoded dev advisor context so all endpoints work immediately.
+Two modes, controlled by environment:
+
+- **Dev bypass (default, no Keycloak):** when `KEYCLOAK_URL` is unset, `get_current_user()` returns a hardcoded dev advisor context so all endpoints work immediately. The web app uses `VITE_DEV_AUTH=true`.
+- **Real Keycloak (login-only, no self-registration):** RS256 JWTs are verified against the realm JWKS, expected issuer, and an allowed `azp` client (`web,mobile,backend` by default; override with `KEYCLOAK_ALLOWED_CLIENTS`). Pre-seeded users: `advisor@wealthmesh.local / advisor123` and `client@wealthmesh.local / client123`. The client login maps to its portfolio via a fixed `keycloak_id`.
+
+Turn it on:
+
+```bash
+# 1. Start identity + db
+docker compose -f docker-compose.dev.yml up -d postgres keycloak   # realm auto-imported
+
+# 2. Start the backend with Keycloak enabled
+KEYCLOAK_URL=http://localhost:8180 uv run uvicorn orchestrator.main:app --port 8000
+
+# 3. Build/run the web app with real login (uses frontend/.env.production)
+cd frontend && npm run build && npm run preview
+```
+
+JWT enforcement is covered by `libs/agentkit/tests/test_auth_jwt.py` (valid token → 200, missing/tampered → 401) — no Keycloak server required to run those tests.
 
 ---
 
@@ -123,7 +141,7 @@ curl http://localhost:8001/a2a/tasks/send \
 
 ## Demo
 
-Reproduces the Mermaid private banking conversation (9 turns: AUM → TWR → geography → deals → S&P → Fed rate → document → report → email):
+Reproduces a full private-banking conversation (9 turns: AUM → TWR → geography → deals → S&P → Fed rate → document → report → email):
 
 ```bash
 # Start services first, then:

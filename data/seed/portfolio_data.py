@@ -1,5 +1,5 @@
 """
-Synthetic portfolio seed data — mirrors the Mermaid demo transcript.
+Synthetic portfolio seed data for the WealthMesh private-banking demo.
 
 Target aggregate metrics:
   AUM           ~ $20.4M
@@ -9,7 +9,7 @@ Target aggregate metrics:
   Sharpe        ~  0.58    (volatility ~12.27%)
   Geography: Asia 37%, NA 35%, Global 16%, EU 4%, ME 0%
   Sector:    RE 45%, PE 35%, EQ 15%, Credit 6%
-  Top movers: Wella 1.55x, Project Vertigo 1.52x, Project Taka 1.47x
+  Top movers: Aurora Brands 1.55x, Project Summit 1.52x, Project Delta 1.47x
 """
 
 from __future__ import annotations
@@ -112,7 +112,7 @@ DEALS: list[SeedDeal] = [
     ),
     # ── ASIA / Private Equity (7 deals) ──────────────────────────────────────
     SeedDeal(
-        "ByteDance / TikTok",
+        "Helios Media",
         "PE",
         "Asia",
         "active",
@@ -120,10 +120,10 @@ DEALS: list[SeedDeal] = [
         690_000,
         480_000,
         date(2019, 8, 1),
-        description="Short-form video platform with 1B+ MAU. Parent ByteDance founded 2012.",
+        description="Short-form video platform with 1B+ monthly active users.",
     ),
     SeedDeal(
-        "Project Taka",
+        "Project Delta",
         "PE",
         "Asia",
         "active",
@@ -131,7 +131,7 @@ DEALS: list[SeedDeal] = [
         588_000,
         400_000,
         date(2018, 3, 1),
-        description="Growth equity in Asian fintech platform. 1.47x MOIC.",
+        description="Growth equity in an Asian fintech platform. 1.47x MOIC.",
     ),
     SeedDeal("Grab Holdings", "PE", "Asia", "active", 300_000, 360_000, 285_000, date(2020, 1, 1)),
     SeedDeal("Sea Limited", "PE", "Asia", "active", 250_000, 310_000, 240_000, date(2020, 6, 1)),
@@ -229,7 +229,7 @@ DEALS: list[SeedDeal] = [
     ),
     # ── NORTH AMERICA / Private Equity (7 deals) ─────────────────────────────
     SeedDeal(
-        "Wella Company",
+        "Aurora Brands",
         "PE",
         "North America",
         "exited",
@@ -238,10 +238,10 @@ DEALS: list[SeedDeal] = [
         500_000,
         date(2015, 6, 1),
         date(2022, 6, 1),
-        description="Global hair-care brand. 1.55x MOIC.",
+        description="Global premium consumer-products group. 1.55x MOIC.",
     ),
     SeedDeal(
-        "Project Vertigo",
+        "Project Summit",
         "PE",
         "North America",
         "exited",

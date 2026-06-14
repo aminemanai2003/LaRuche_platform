@@ -17,6 +17,41 @@ export interface ChatMessage {
   content: string
 }
 
+// ── Portfolio & market data ───────────────────────────────────────────────
+export interface PortfolioSummary {
+  aum_fmt: string
+  twr_pct: number
+  annualized_pct: number
+  irr_pct: number
+  sharpe: number
+  volatility_pct: number
+  profit_fmt: string
+  num_deals: number
+  num_active: number
+}
+export interface Allocation {
+  geography: Record<string, number>
+  sector: Record<string, number>
+}
+export interface Deal {
+  name: string
+  sector: string
+  geo: string
+  status: string
+  aum: number
+  twr: number
+}
+export interface MarketData {
+  quotes: { symbol: string; name: string; price: number; change_pct: number }[]
+  indicators: { key: string; name: string; value: number; unit: string; date: string }[]
+}
+
+export const getPortfolioSummary = () =>
+  api.get<PortfolioSummary>('/api/portfolio/summary').then(r => r.data)
+export const getAllocation = () => api.get<Allocation>('/api/portfolio/allocation').then(r => r.data)
+export const getDeals = () => api.get<Deal[]>('/api/portfolio/deals').then(r => r.data)
+export const getMarket = () => api.get<MarketData>('/api/market').then(r => r.data)
+
 export async function* streamChat(
   message: string,
   conversationId: string,

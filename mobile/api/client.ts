@@ -21,6 +21,48 @@ export async function fetchMe() {
   return data as { user_id: string; email: string; roles: string[] }
 }
 
+// ── Portfolio & market data ───────────────────────────────────────────────
+export interface PortfolioSummary {
+  aum_fmt: string
+  twr_pct: number
+  annualized_pct: number
+  irr_pct: number
+  sharpe: number
+  volatility_pct: number
+  profit_fmt: string
+  num_deals: number
+  num_active: number
+}
+export interface Deal {
+  name: string
+  sector: string
+  geo: string
+  status: string
+  aum: number
+  twr: number
+}
+export interface MarketData {
+  quotes: { symbol: string; name: string; price: number; change_pct: number }[]
+  indicators: { key: string; name: string; value: number; unit: string; date: string }[]
+}
+
+export async function fetchSummary() {
+  const { data } = await api.get('/api/portfolio/summary')
+  return data as PortfolioSummary
+}
+export async function fetchAllocation() {
+  const { data } = await api.get('/api/portfolio/allocation')
+  return data as { geography: Record<string, number>; sector: Record<string, number> }
+}
+export async function fetchDeals() {
+  const { data } = await api.get('/api/portfolio/deals')
+  return data as Deal[]
+}
+export async function fetchMarket() {
+  const { data } = await api.get('/api/market')
+  return data as MarketData
+}
+
 export async function* streamChat(
   message: string,
   conversationId: string,

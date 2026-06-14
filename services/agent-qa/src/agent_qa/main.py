@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import subprocess
 import sys
 import tempfile
@@ -32,6 +33,34 @@ def test_me_requires_auth():
 '''
 
 
+def _strip_code_fences(text: str) -> str:
+    """Remove ```python / ``` markdown fences the LLM often wraps code in."""
+    lines = [ln for ln in text.splitlines() if not ln.strip().startswith("```")]
+    return "\n".join(lines).strip()
+
+
+def _sanitize_test_code(text: str) -> str:
+    """
+    Turn raw LLM output into a runnable test module: strip markdown fences and
+    any leading/trailing prose, keeping only a block that parses as valid Python
+    and contains a test. Falls back to a known-good module if nothing parses.
+    """
+    lines = _strip_code_fences(text).splitlines()
+    code_starts = ("import ", "from ", "def ", "async ", "@", "#")
+    while lines and not lines[0].lstrip().startswith(code_starts):
+        lines.pop(0)
+    while lines:
+        candidate = "\n".join(lines).strip()
+        try:
+            ast.parse(candidate)
+            if "def test" in candidate:
+                return candidate
+        except SyntaxError:
+            pass
+        lines.pop()  # drop a trailing prose line and retry
+    return _FALLBACK_TEST
+
+
 class TestGenerateTool(MCPTool):
     @property
     def name(self) -> str:
@@ -56,10 +85,10 @@ class TestGenerateTool(MCPTool):
         prompt = (
             f"Write 3-5 concise pytest tests for service: {service}\n"
             f"Context: {description}\n"
-            "Use httpx for HTTP calls. Output only Python code."
+            "Use httpx for HTTP calls. Output only Python code, no markdown fences."
         )
         try:
-            code = await _llm.chat([{"role": "user", "content": prompt}])
+            code = _sanitize_test_code(await _llm.chat([{"role": "user", "content": prompt}]))
         except Exception:
             code = _FALLBACK_TEST
         return ToolResult(content=code, metadata={"service": service})

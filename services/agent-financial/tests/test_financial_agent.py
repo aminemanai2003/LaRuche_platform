@@ -85,7 +85,7 @@ async def test_top_deals():
     t = TopDealsTool()
     r = await t.execute(limit=3)
     assert r.ok
-    assert "Wella" in r.content
+    assert "Aurora" in r.content
     assert "1.55x" in r.content
 
 

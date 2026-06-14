@@ -4,6 +4,7 @@ from typing import Any
 
 from agentkit.a2a.models import A2ATask, AgentCard, AgentSkill
 from agentkit.a2a.router import a2a_router
+from agentkit.llm.client import LLMClient, ModelRole
 from agentkit.mcp.registry import MCPRegistry
 from agentkit.tracing import trace_span
 from fastapi import FastAPI
@@ -23,28 +24,59 @@ _TOOL_MAP: list[tuple[list[str], str, dict[str, Any]]] = [
     (["gold", "gld"], "market.quote", {"symbol": "GLD"}),
     (["inflation", "cpi"], "econ.indicator", {"indicator": "us_inflation"}),
     (["fed", "interest rate", "federal reserve"], "econ.indicator", {"indicator": "us_fed_rate"}),
-    (["gdp", "growth"], "econ.indicator", {"indicator": "us_gdp_growth"}),
+    (["gdp"], "econ.indicator", {"indicator": "us_gdp_growth"}),
     (["yield", "treasury", "10y"], "econ.indicator", {"indicator": "us_10y_yield"}),
     (["vix", "volatility index"], "econ.indicator", {"indicator": "vix"}),
-    (["market", "overview", "conditions"], "market.overview", {}),
+    (["overview", "conditions", "summary"], "market.overview", {}),
 ]
 
+_llm = LLMClient(role=ModelRole.DEFAULT)
 
-def _pick(message: str) -> tuple[str, dict[str, Any]]:
+_SYSTEM_PROMPT = """You are a market-data assistant for a private bank.
+Answer the user's question using ONLY the tool data provided.
+Be precise with numbers; do not invent figures."""
+
+
+def _pick_tools(message: str) -> list[tuple[str, dict[str, Any]]]:
+    """Return every tool whose keywords match — supports multi-part questions."""
     lower = message.lower()
+    picked: list[tuple[str, dict[str, Any]]] = []
+    seen: set[str] = set()
     for keywords, tool, kwargs in _TOOL_MAP:
         if any(kw in lower for kw in keywords):
-            return tool, kwargs
-    return "market.overview", {}
+            sig = f"{tool}:{kwargs}"
+            if sig not in seen:
+                picked.append((tool, kwargs))
+                seen.add(sig)
+    return picked or [("market.overview", {})]
 
 
 async def handle_task(task: A2ATask) -> A2ATask:
     msg = task.messages[-1].content if task.messages else ""
     with trace_span("market_agent", task_id=task.task_id):
-        tool_name, kwargs = _pick(msg)
-        result = await _registry.call(tool_name, **kwargs)
-        answer = result.content if result.ok else f"Error: {result.error}"
-    return task.succeed(answer, {"tool": tool_name})
+        tool_calls = _pick_tools(msg)
+        tool_outputs: list[str] = []
+        for tool_name, kwargs in tool_calls:
+            result = await _registry.call(tool_name, **kwargs)
+            if result.ok and result.content:
+                tool_outputs.append(result.content)
+        tool_context = "\n".join(tool_outputs)
+
+        messages = [
+            {"role": "system", "content": _SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    f"User question: {msg}\n\nTool data:\n{tool_context}\n\n"
+                    "Answer using only the tool data above."
+                ),
+            },
+        ]
+        try:
+            answer = await _llm.chat(messages)
+        except Exception:
+            answer = tool_context or "No market data available."
+    return task.succeed(answer, {"tools_called": [t for t, _ in tool_calls]})
 
 
 _CARD = AgentCard(
