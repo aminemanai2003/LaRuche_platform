@@ -7,7 +7,6 @@ Answers questions using hybrid retrieval + grounded response.
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 from agentkit.a2a.models import A2ATask, AgentCard, AgentSkill
@@ -18,10 +17,8 @@ from agentkit.mcp.tool import MCPTool, ToolResult
 from agentkit.tracing import trace_span
 from fastapi import FastAPI
 
-_QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
-_COLLECTION = "wealth_docs"
+from agent_docs.vector_store import QdrantDocumentStore
 
-# In-memory fallback doc store (used when Qdrant is not running)
 _DOC_STORE: dict[str, str] = {
     "aurora_factsheet": (
         "Aurora Brands — Investment Fact Sheet\n"
@@ -45,6 +42,7 @@ _DOC_STORE: dict[str, str] = {
         "Sectors: Real Estate 45%, Private Equity 35%, Equities 15%, Credit 5%"
     ),
 }
+_vector_store = QdrantDocumentStore()
 
 
 def _simple_search(query: str, top_k: int = 3) -> list[dict[str, Any]]:
@@ -56,6 +54,19 @@ def _simple_search(query: str, top_k: int = 3) -> list[dict[str, Any]]:
             results.append({"id": doc_id, "score": score, "content": content})
     results.sort(key=lambda x: -x["score"])
     return results[:top_k]
+
+
+async def _search_documents(query: str, top_k: int) -> tuple[list[dict[str, Any]], str]:
+    if await _vector_store.available():
+        try:
+            await _vector_store.seed(_DOC_STORE)
+            return await _vector_store.search(query, top_k), "qdrant"
+        except (ValueError, OSError):
+            pass
+        except Exception:
+            # The docs agent remains usable when Ollama or Qdrant is temporarily down.
+            pass
+    return _simple_search(query, top_k), "memory"
 
 
 class DocIngestTool(MCPTool):
@@ -80,7 +91,19 @@ class DocIngestTool(MCPTool):
 
     async def execute(self, doc_id: str = "", content: str = "", **_kw: Any) -> ToolResult:
         _DOC_STORE[doc_id] = content
-        return ToolResult(content=f"Ingested document '{doc_id}' ({len(content)} chars)")
+        backend = "memory"
+        if await _vector_store.available():
+            try:
+                chunks = await _vector_store.upsert(doc_id, content)
+                backend = "qdrant"
+            except Exception:
+                chunks = 0
+        else:
+            chunks = 0
+        return ToolResult(
+            content=f"Ingested document '{doc_id}' ({len(content)} chars)",
+            metadata={"backend": backend, "chunks": chunks},
+        )
 
 
 class RAGSearchTool(MCPTool):
@@ -104,11 +127,17 @@ class RAGSearchTool(MCPTool):
         }
 
     async def execute(self, query: str = "", top_k: int = 3, **_kw: Any) -> ToolResult:
-        results = _simple_search(query, top_k)
+        results, backend = await _search_documents(query, top_k)
         if not results:
-            return ToolResult(content="No relevant documents found.")
-        parts = [f"[{r['id']}]\n{r['content']}" for r in results]
-        return ToolResult(content="\n\n---\n\n".join(parts))
+            return ToolResult(
+                content="No relevant documents found.",
+                metadata={"backend": backend, "results": 0},
+            )
+        parts = [f"[{r['id']}] score={r['score']:.3f}\n{r['content']}" for r in results]
+        return ToolResult(
+            content="\n\n---\n\n".join(parts),
+            metadata={"backend": backend, "results": len(results)},
+        )
 
 
 _registry = MCPRegistry()
@@ -139,7 +168,13 @@ async def handle_task(task: A2ATask) -> A2ATask:
                 answer = result.content
         else:
             answer = "No relevant documents found for your query."
-    return task.succeed(answer, {"source": "rag"})
+    return task.succeed(
+        answer,
+        {
+            "source": "rag",
+            "backend": result.metadata.get("backend", "memory"),
+        },
+    )
 
 
 _CARD = AgentCard(

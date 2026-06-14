@@ -65,7 +65,7 @@ A conversational private-banking assistant covering AUM queries, TWR, IRR, Sharp
 | orchestrator | 8000 | LangGraph supervisor + auth/verify + GDPR endpoints |
 | agent-financial | 8001 | AUM, TWR, IRR, Sharpe, geo/sector breakdowns |
 | agent-market | 8002 | Market quotes, economic indicators |
-| agent-docs | 8003 | Document ingestion + keyword/RAG search |
+| agent-docs | 8003 | Chunking, Ollama embeddings, and Qdrant semantic search |
 | agent-action | 8004 | Report generation, email (MailHog), WhatsApp stub |
 | agent-qa | 8005 | AI-SDLC: LLM-generated pytest tests + sandboxed runner |
 | voice | 8006 | STT (faster-whisper) + TTS (Piper) + voice-to-voice |
@@ -83,6 +83,7 @@ A conversational private-banking assistant covering AUM queries, TWR, IRR, Sharp
 ```bash
 # Pull the LLM
 ollama pull qwen2.5:3b
+ollama pull nomic-embed-text
 
 # Install Python dependencies
 uv sync
@@ -93,6 +94,20 @@ docker compose -f docker-compose.dev.yml up -d
 # Run tests
 uv run pytest services/ libs/ -q
 ```
+
+### Document RAG
+
+The docs agent chunks document text, embeds it with `nomic-embed-text`, and stores the
+vectors and source payloads in Qdrant. In local development, start Qdrant and point the
+host-run agent at it:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d qdrant
+QDRANT_URL=http://localhost:6333 uv run uvicorn agent_docs.main:app --port 8003
+```
+
+If Qdrant or Ollama is unavailable, ingestion and search continue with the in-memory
+lexical fallback.
 
 ### Authentication
 

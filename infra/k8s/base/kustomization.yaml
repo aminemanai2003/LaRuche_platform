@@ -9,6 +9,7 @@ resources:
   - secrets.yaml
   - postgres.yaml
   - redis.yaml
+  - qdrant.yaml
   - orchestrator.yaml
   - agent-financial.yaml
   - agent-market.yaml

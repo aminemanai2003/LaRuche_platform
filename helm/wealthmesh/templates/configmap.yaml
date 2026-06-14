@@ -4,8 +4,9 @@ metadata:
   name: wealthmesh-env
   namespace: {{ .Release.Namespace }}
 data:
-  OLLAMA_URL: {{ .Values.config.ollamaUrl | quote }}
+  OLLAMA_BASE_URL: {{ .Values.config.ollamaUrl | quote }}
   OLLAMA_MODEL: {{ .Values.config.ollamaModel | quote }}
+  QDRANT_URL: {{ .Values.config.qdrantUrl | quote }}
   REDIS_URL: {{ .Values.config.redisUrl | quote }}
   LANGFUSE_HOST: {{ .Values.config.langfuseHost | quote }}
   SMTP_HOST: {{ .Values.config.smtpHost | quote }}

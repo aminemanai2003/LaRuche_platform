@@ -50,6 +50,7 @@ resources:
 config:
   ollamaUrl: "http://host.docker.internal:11434"
   ollamaModel: "qwen2.5:3b"
+  qdrantUrl: "http://qdrant:6333"
   redisUrl: "redis://redis:6379"
   langfuseHost: "http://langfuse:3000"
   smtpHost: "mailhog"
@@ -66,6 +67,11 @@ postgres:
 
 redis:
   enabled: true
+
+qdrant:
+  enabled: true
+  image: "qdrant/qdrant:v1.18.2"
+  storage: 5Gi
 
 ingress:
   enabled: true
